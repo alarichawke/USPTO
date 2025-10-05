@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>TSDR — Trademark Status & Document Retrieval</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="only light">
+  <style>
+    /* ========== Base (White-only TSDR-like) ========== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: #ffffff;
+      color: #1f2937;
+      line-height: 1.55;
+    }
+    a { color: #005ea2; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    :root{
+      --bg:#ffffff;
+      --surface:#ffffff;
+      --text:#1f2937;
+      --muted:#4b5563;
+      --primary:#005ea2;
+      --primary-600:#004b82;
+      --border:#e5e7eb;
+      --maxw: 1200px;
+      --radius: 12px;
+    }
+
+    /* Top utility bar */
+    .topbar{
+      background:#fff;
+      color:var(--text);
+      border-bottom:1px solid var(--border);
+      font-size:13px;
+    }
+    .topbar .wrap{
+      max-width:var(--maxw);
+      margin:0 auto;
+      padding:8px 16px;
+      display:flex; gap:16px; justify-content:flex-end; flex-wrap:wrap;
+    }
+
+    /* Masthead */
+    .masthead{
+      background:#fff;
+      border-bottom:1px solid var(--border);
+    }
+    .masthead .wrap{
+      max-width:var(--maxw);
+      margin:0 auto;
+      padding:16px;
+      display:grid; gap:12px;
+    }
+    .brandrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+    .brand{ font-weight:800; font-size:18px; color:var(--primary); }
+    .mainnav{ display:flex; gap:18px; flex-wrap:wrap; color:var(--text); font-weight:600; }
+    .mainnav a{ color:var(--text); }
+    .mainnav a:hover{ color:var(--primary); text-decoration:underline; }
+
+    /* Breadcrumb */
+    .crumbs{
+      max-width:var(--maxw);
+      margin:16px auto 0;
+      padding:0 16px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .crumbs a{ color:var(--muted); }
+
+    /* Help banner */
+    .help-banner{
+      max-width:var(--maxw);
+      margin:12px auto;
+      background:#fff;
+      border:1px solid var(--border);
+      border-left:4px solid var(--primary);
+      padding:12px 14px;
+      border-radius:var(--radius);
+      color:var(--muted);
+    }
+    .help-banner strong{ color:var(--text); }
+
+    /* Page header */
+    .page-header{
+      max-width:var(--maxw);
+      margin:12px auto;
+      padding:0 16px;
+      display:flex; align-items:end; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    }
+    .page-header h1{ font-size:22px; margin:0; letter-spacing:.2px; }
+    .small{ color:var(--muted); font-size:14px; }
+
+    /* Card */
+    .card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+    }
+
+    /* Search */
+    .search-card{ max-width:var(--maxw); margin:0 auto; padding:16px; }
+    .search-tabs{ display:flex; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+    .pill{
+      padding:8px 12px; border-radius:999px; border:1px solid var(--border);
+      background:#fff; color:var(--text); font-weight:600; cursor:pointer;
+    }
+    .form-row{
+      display:grid; grid-template-columns: 280px 1fr 120px; gap:10px; align-items:center;
+    }
+    @media (max-width:800px){ .form-row{ grid-template-columns:1fr; } }
+    label{ color:var(--muted); font-size:14px; }
+    input[type="text"]{
+      width:100%; padding:12px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--text);
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      background:var(--primary); color:#fff; border:1px solid transparent;
+      padding:10px 14px; border-radius:10px; font-weight:700; cursor:pointer;
+    }
+    .btn:hover{ background:var(--primary-600); }
+    .status-found{ margin-top:10px; color:#166534; font-weight:700; font-size:14px; }
+
+    /* Tabs */
+    .tabs{ max-width:var(--maxw); margin:12px auto; padding:0 16px; }
+    .tabbar{
+      background:#fff; border-bottom:1px solid var(--border); border-radius:0; padding:0; display:flex; gap:0; flex-wrap:wrap; align-items:center;
+    }
+    .tabbar .tab{
+      padding:12px 16px; border:none; background:transparent; border-bottom:3px solid transparent;
+      color:var(--text); font-weight:700; cursor:pointer;
+    }
+    .tabbar .tab.active{
+      color:var(--primary);
+      border-bottom-color:var(--primary);
+    }
+    .tabbar .right{ margin-left:auto; display:flex; gap:6px; }
+    .tab-panels{ margin-top:12px; }
+    .panel{ display:none; }
+    .panel.active{ display:block; }
+
+    /* Status panel */
+    .generated{ color:var(--muted); font-size:14px; margin-bottom:12px; }
+    .status-grid{ display:grid; grid-template-columns:1fr 320px; gap:16px; }
+    @media (max-width:1000px){ .status-grid{ grid-template-columns:1fr; } }
+    .title-row{ display:flex; align-items:start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .mark-title{ font-size:20px; font-weight:800; }
+    .mark-img{
+      width:100%; min-height:140px; border:1px solid var(--border); border-radius:10px;
+      display:grid; place-items:center; color:var(--muted); font-size:14px;
+    }
+    .deflist{
+      display:grid; grid-template-columns: 1fr 1fr; gap:8px 16px; font-size:14px;
+    }
+    @media (max-width:700px){ .deflist{ grid-template-columns:1fr; } }
+    .deflist dt{ margin:0; color:var(--muted); }
+    .deflist dd{ margin:0; font-weight:600; }
+    .status-box{
+      background:#fff; border:1px solid var(--border); border-left:4px solid #16a34a; border-radius:var(--radius); padding:12px; color:var(--text);
+    }
+    .status-chip{
+      display:inline-block; margin-top:6px; background:#edf7ff; color:#005ea2; border:1px solid #d0e7ff;
+      padding:6px 10px; border-radius:999px; font-size:12px; font-weight:800;
+    }
+
+    /* Accordions */
+    details.ac{
+      background:#fff; border:1px solid var(--border); border-radius:var(--radius); padding:12px;
+    }
+    details.ac + details.ac{ margin-top:10px; }
+    details.ac > summary{ cursor:pointer; font-weight:800; color:var(--text); list-style:none; }
+    details.ac > summary::-webkit-details-marker{ display:none; }
+
+    /* Table */
+    table{ width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+    thead th{ background:#fff; color:#374151; padding:10px 12px; font-size:13px; text-align:left; border-bottom:1px solid var(--border); }
+    td{ padding:10px 12px; border-top:1px solid var(--border); vertical-align:top; }
+
+    /* Footer */
+    footer{ margin-top:24px; background:#fff; border-top:1px solid var(--border); }
+    .footwrap{ max-width:var(--maxw); margin:0 auto; padding:16px; color:var(--muted); display:grid; gap:8px; }
+    .footlinks{ display:flex; flex-wrap:wrap; gap:14px; }
+    .footlinks a{ color:var(--muted); }
+    .footlinks a:hover{ color:var(--primary); }
+
+    /* Print */
+    @media print{
+      .topbar, .masthead, .crumbs, .help-banner, .search-card, .tabbar .tab[data-tab="download"], .tabbar .tab[data-tab="print"] { display:none !important; }
+      .tabs{ padding:0; }
+      .card{ border-color:#bbb; }
+      a::after{ content:" (" attr(href) ")"; font-size:90%; color:#666; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top utility bar -->
+  <div class="topbar">
+    <div class="wrap">
+      <a href="#">About Us</a>
+      <a href="#">Careers</a>
+      <a href="#">Contact Us</a>
+    </div>
+  </div>
+
+  <!-- Masthead -->
+  <div class="masthead">
+    <div class="wrap">
+      <div class="brandrow">
+        <div class="brand">USPTO — TSDR</div>
+        <nav class="mainnav" aria-label="Primary">
+          <a href="#">Patents</a>
+          <a href="#"><strong>Trademarks</strong></a>
+          <a href="#">Learning and Resources</a>
+          <a href="#">Help</a>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breadcrumb -->
+  <div class="crumbs">
+    <a href="#">USPTO</a> > <a href="#">Trademark</a> > <a href="#">TSDR</a> > <strong>Trademark Search</strong>
+    <span style="margin-left:8px"><a href="#" class="small">FAQ</a></span>
+  </div>
+
+  <!-- Help banner -->
+  <div class="help-banner">
+    <strong>For assistance with TSDR</strong>, email teas@uspto.gov and include your serial number, the document you are looking for, and a screenshot of any error messages you have received.
+  </div>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <h1>Trademark Status & Document Retrieval (TSDR)</h1>
+    <a class="small" href="#">Help</a>
+  </div>
+
+  <!-- Search -->
+  <div class="search-card card">
+    <div class="search-tabs">
+      <button class="pill" type="button">Search</button>
+      <button class="pill" type="button">Multi-Search</button>
+      <button class="pill" type="button">Help</button>
+    </div>
+    <div class="form-row">
+      <label for="query">US Serial, Registration, or Reference No.</label>
+      <input id="query" type="text" value="77/774,062" />
+      <button class="btn" id="btnSearch">Search</button>
+    </div>
+    <div class="status-found" id="statusFound" aria-live="polite">Status results found</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tabbar">
+      <button class="tab active" data-tab="status">Status</button>
+      <button class="tab" data-tab="documents">Documents</button>
+      <button class="tab" data-tab="maintenance">Maintenance</button>
+      <button class="tab" data-tab="help">Help</button>
+      <div class="right">
+        <button class="tab" data-tab="download">Download</button>
+        <button class="tab" data-tab="print">Print Preview</button>
+      </div>
+    </div>
+
+    <div class="tab-panels">
+      <!-- STATUS -->
+      <section id="tab-status" class="panel active">
+        <div class="card">
+          <div class="generated">Generated on: This page was generated by TSDR on 2025-10-04 19:25:06 EDT</div>
+
+          <div class="status-grid">
+            <div>
+              <div class="title-row">
+                <div>
+                  <div class="mark-title">Mark: NANJIAN</div>
+                  <div class="small">TM5 Common Status Descriptor: <em>LIVE/REGISTRATION/Issued and Active</em></div>
+                </div>
+                <div class="mark-img" role="img" aria-label="Trademark image">Trademark image</div>
+              </div>
+
+              <dl class="deflist" style="margin-top:12px;">
+                <dt>US Serial Number:</dt><dd>77/774,062</dd>
+                <dt>Application Filing Date:</dt><dd>Jul. 3, 2024</dd>
+
+                <dt>US Registration Number:</dt><dd>3,749,251</dd>
+                <dt>Registration Date:</dt><dd>Feb. 16, 2024</dd>
+
+                <dt>Register:</dt><dd>Principal</dd>
+                <dt>Mark Type:</dt><dd>Service Mark</dd>
+              </dl>
+
+              <div class="status-box">
+                <div><strong>Status:</strong> Registered. The registration date is used to determine when post-registration maintenance documents are due.</div>
+                <div class="small" style="margin-top:6px;">
+                  <strong>Status Date:</strong> Feb. 16, 2024
+                  <!-- Publication date not provided -->
+                </div>
+                <span class="status-chip">LIVE / REGISTRATION / Issued and Active</span>
+              </div>
+
+              <!-- Accordions -->
+              <details class="ac" open>
+                <summary>Mark Information</summary>
+                <div class="small" style="margin-top:6px;">
+                  Literal Element: <strong>NANJIAN</strong><br />
+                  Mark Drawing Type: Standard Character<br />
+                  Statement: The mark consists of standard characters without claim to any particular font, style, size, or color.
+                </div>
+              </details>
+
+              <details class="ac" open>
+                <summary>Goods and Services</summary>
+                <p class="small" style="margin-top:6px;">
+                  International Class 007 — Industrial sewing machines and parts thereof; machines and machine tools; motors and engines (except for land vehicles); machine coupling and transmission components (except for land vehicles).<br />
+                  U.S. Classes: 013, 019, 021, 023, 031, 034, and 035.
+                </p>
+              </details>
+
+              <details class="ac" open>
+                <summary>Basis Information (Case Level)</summary>
+                <p class="small" style="margin-top:6px;">
+                  Filing Basis: Section 1(a) — Use in Commerce<br />
+                  First Use: Jun. 28, 2024; In Commerce: Jun. 28, 2024.
+                </p>
+              </details>
+
+              <details class="ac" open>
+                <summary>Current Owner(s) Information</summary>
+                <p class="small" style="margin-top:6px;">
+                  Owner: NANJIAN<br />
+                  Address: PO BOX 100637, Arlington, VA 22210, United States
+                </p>
+              </details>
+
+              <details class="ac" open>
+                <summary>Attorney/Correspondence Information</summary>
+                <p class="small" style="margin-top:6px;">
+                  Correspondence: —<br />
+                  Docket/Ref: —<br />
+                  Email: —
+                </p>
+              </details>
+
+              <details class="ac" open>
+                <summary>TM Staff and Location Information</summary>
+                <p class="small" style="margin-top:6px;">
+                  Examining Attorney: Jessica Fathy
+                </p>
+              </details>
+
+              <details class="ac">
+                <summary>Prosecution History</summary>
+                <table style="margin-top:8px;">
+                  <thead>
+                    <tr><th>Date</th><th>Description</th><th>Proceeding Number</th></tr>
+                  </thead>
+                  <tbody>
+                    <tr><td>Feb. 16, 2024</td><td>Registered — Principal Register</td><td>—</td></tr>
+                    <tr><td>Jul. 3, 2024</td><td>Application Filed (Serial No. 77/774,062)</td><td>—</td></tr>
+                  </tbody>
+                </table>
+              </details>
+            </div>
+
+            <aside>
+              <div class="card">
+                <div class="small"><strong>Notes</strong><br/>Serial No.: 77/774,062 • Reg. No.: 3,749,251 • Int. Cl.: 07</div>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCUMENTS -->
+      <section id="tab-documents" class="panel">
+        <div class="card">
+          <table>
+            <thead>
+              <tr><th>Date</th><th>Document Description</th><th>Type</th><th>View</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Feb. 16, 2024</td>
+                <td>Registration Certificate</td>
+                <td>PDF</td>
+                <td><a href="#">View</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MAINTENANCE -->
+      <section id="tab-maintenance" class="panel">
+        <div class="card">
+          <h3 style="margin:0 0 8px;">Maintenance</h3>
+          <p class="small">Registered: Feb. 16, 2024. Post-registration filings may include Section 8 (between years 5–6), optional Section 15, and renewal under Sections 8 & 9 every 10 years.</p>
+          <table style="margin-top:10px;">
+            <thead>
+              <tr><th>Filing</th><th>Window Opens</th><th>Due By</th><th>Grace Period Ends</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Section 8 (5th-6th year)</td>
+                <td>Feb. 16, 2029</td>
+                <td>Feb. 16, 2030</td>
+                <td>Aug. 16, 2030</td>
+              </tr>
+              <tr>
+                <td>Section 8 & 9 (10-year renewal)</td>
+                <td>Feb. 16, 2033</td>
+                <td>Feb. 16, 2034</td>
+                <td>Aug. 16, 2034</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- HELP -->
+      <section id="tab-help" class="panel">
+        <div class="card">
+          <h3 style="margin:0 0 8px;">Help</h3>
+          <ul>
+            <li>Enter a US Serial, Registration, or Reference number and click Search.</li>
+            <li>Use tabs to view Status, Documents, or Maintenance info.</li>
+            <li>Click Print Preview to print or save as PDF.</li>
+          </ul>
+          <p class="small">For TSDR assistance, email teas@uspto.gov with your serial number and any error screenshots.</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footwrap">
+      <div class="footlinks">
+        <a href="#">Browse By Topic</a>
+        <a href="#">Patents</a>
+        <a href="#">Trademarks</a>
+        <a href="#">Learning & Resources</a>
+        <a href="#">About the USPTO</a>
+        <a href="#">Glossary</a>
+        <a href="#">Careers</a>
+        <a href="#">Contact Us</a>
+      </div>
+      <div class="footlinks">
+        <a href="#">Accessibility</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Security</a>
+        <a href="#">Systems Status</a>
+        <a href="#">Site Map</a>
+      </div>
+      <div class="footlinks">
+        <a href="#">Regulations.gov</a>
+        <a href="#">StopFakes.gov</a>
+        <a href="#">USA.gov</a>
+        <a href="#">Department of Commerce</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Tabs
+    const tabs = document.querySelectorAll('.tabbar .tab');
+    const panels = {
+      status: document.getElementById('tab-status'),
+      documents: document.getElementById('tab-documents'),
+      maintenance: document.getElementById('tab-maintenance'),
+      help: document.getElementById('tab-help')
+    };
+    function activateTab(name){
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+      Object.entries(panels).forEach(([k, el]) => el.classList.toggle('active', k === name));
+    }
+    tabs.forEach(t => {
+      t.addEventListener('click', () => {
+        const name = t.dataset.tab;
+        if(name === 'download'){
+          const html = document.documentElement.outerHTML;
+          const blob = new Blob([html], {type:'text/html'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = 'TSDR_NANJIAN_77774062.html';
+          document.body.appendChild(a); a.click();
+          URL.revokeObjectURL(url); a.remove();
+          return;
+        }
+        if(name === 'print'){ window.print(); return; }
+        activateTab(name);
+      });
+    });
+    // Search UX
+    document.getElementById('btnSearch').addEventListener('click', () => {
+      const q = document.getElementById('query').value.trim();
+      const el = document.getElementById('statusFound');
+      if(q){
+        el.textContent = 'Status results found for ' + q;
+        el.style.color = '#166534';
+        activateTab('status');
+      } else {
+        el.textContent = 'Please enter a valid number';
+        el.style.color = 'crimson';
+      }
+    });
+  </script>
+</body>
+</html>
