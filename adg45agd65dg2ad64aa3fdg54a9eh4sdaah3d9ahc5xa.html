@@ -149,10 +149,25 @@
     @media (max-width:1000px){ .status-grid{ grid-template-columns:1fr; } }
     .title-row{ display:flex; align-items:start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
     .mark-title{ font-size:20px; font-weight:800; }
-    .mark-img{
-      width:100%; min-height:140px; border:1px solid var(--border); border-radius:10px;
-      display:grid; place-items:center; color:var(--muted); font-size:14px;
-    }
+.mark-img{
+  width:100%;
+  min-height:140px;
+  border:1px solid var(--border);
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--muted);
+  font-size:14px;
+}
+
+.mark-img img{
+  max-width:120px;   /* ছবির সর্বোচ্চ প্রস্থ */
+  height:auto;       /* অনুপাত ঠিক রাখবে */
+  object-fit:contain;
+  opacity:0.95;
+}
+
     .deflist{
       display:grid; grid-template-columns: 1fr 1fr; gap:8px 16px; font-size:14px;
     }
